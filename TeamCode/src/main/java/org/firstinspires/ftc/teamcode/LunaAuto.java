@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 import java.util.List;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -89,48 +91,47 @@ public class LunaAuto extends LinearOpMode {
         /** Wait for the game to begin */
         waitForStart();
 
+
             if (opModeIsActive())
             {
-                if (tfod != null)
-                {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        if (updatedRecognitions.size() == 0 ) {
-                            // empty list.  no objects recognized.
-                            telemetry.addData("TFOD", "No items detected.");
-                            telemetry.addData("Target Zone", "A");
-                            telemetry.update();
-                            wobbleDrop();
-                        } else {
-                            // list is not empty.
-                            // step through the list of recognitions and display boundary info.
-                            int i = 0;
-                            for (Recognition recognition : updatedRecognitions) {
-                                telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
-                                telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
-                                        recognition.getLeft(), recognition.getTop());
-                                telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
-                                        recognition.getRight(), recognition.getBottom());
+                if (tfod != null) {
+                        List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                        if (updatedRecognitions != null) {
+                            telemetry.addData("# Object Detected", updatedRecognitions.size());
+                            if (updatedRecognitions.size() == 0) {
+                                // empty list.  no objects recognized.
+                                telemetry.addData("TFOD", "No items detected.");
+                                telemetry.addData("Target Zone", "A");
+                                telemetry.update();
+                                ZoneAT();
+                            } else {
+                                // list is not empty.
+                                // step through the list of recognitions and display boundary info.
+                                int i = 0;
+                                for (Recognition recognition : updatedRecognitions) {
+                                    telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                                    telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                                            recognition.getLeft(), recognition.getTop());
+                                    telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                                            recognition.getRight(), recognition.getBottom());
 
-                                // check label to see which target zone to go after.
-                                if (recognition.getLabel().equals("Single")) {
-                                    telemetry.addData("Target Zone", "B");
-                                    telemetry.update();
-                                    ZoneBT();
-                                } else if (recognition.getLabel().equals("Quad")) {
-                                    telemetry.addData("Target Zone", "C");
-                                    telemetry.update();
-                                    ZoneCT();
-                                } else {
-                                    telemetry.addData("Target Zone", "UNKNOWN");
-                                    telemetry.update();
+                                    // check label to see which target zone to go after.
+                                    if (recognition.getLabel().equals("Single")) {
+                                        telemetry.addData("Target Zone", "B");
+                                        telemetry.update();
+                                        ZoneBT();
+                                    } else if (recognition.getLabel().equals("Quad")) {
+                                        telemetry.addData("Target Zone", "C");
+                                        telemetry.update();
+                                        ZoneCT();
+                                    } else {
+                                        telemetry.addData("Target Zone", "UNKNOWN");
+                                        telemetry.update();
+                                    }
                                 }
                             }
                         }
-                    }
+
                 }
             }
 
@@ -138,73 +139,44 @@ public class LunaAuto extends LinearOpMode {
             tfod.shutdown();
         }
     }
-
-    public void ZoneA()
-    {
-
-         startFlywheel();
-
-
-        Trajectory shootPositionForward = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .forward(60)
-                .build();
-        drivetrain.followTrajectory(shootPositionForward);
-
-        Trajectory shootPositionRight = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .strafeRight(12)
-                .build();
-        drivetrain.followTrajectory(shootPositionRight);
-
-        ringIndex();
-        stopFlywheel();
-
-        Trajectory wobbleRecenter = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .strafeLeft(24)
-                .build();
-        drivetrain.followTrajectory(wobbleRecenter);
-
-        Trajectory deliverWobbleForward = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .forward(96)
-                .build();
-        drivetrain.followTrajectory(deliverWobbleForward);
-
-        wobbleDrop();
-
-        Trajectory lineParkA = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .strafeRight(24)
-                .build();
-        drivetrain.followTrajectory(lineParkA);
-    }
+    
     public void ZoneAT()
     {
-        startFlywheel();
-
         Trajectory shootPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(60,-12, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(50,6, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(shootPosition);
 
-        ringIndex();
-        stopFlywheel();
-
         Trajectory wobbleRecenter = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(0, 24, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(0, 16, Math.toRadians(5)))
                 .build();
         drivetrain.followTrajectory(wobbleRecenter);
 
         Trajectory deliverWobble = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(96, -24, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(70, -9, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(deliverWobble);
-
         wobbleDrop();
+
+        startFlywheel(1.00);
+        Trajectory backPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
+                .lineToLinearHeading(new Pose2d(-32.25, -3, Math.toRadians(-4.5)))
+                .build();
+        drivetrain.followTrajectory(backPosition);
+        ringIndex();
+        stopFlywheel();
+
+        Trajectory frontPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
+                .lineToLinearHeading(new Pose2d(30, -3, Math.toRadians(6)))
+                .build();
+        drivetrain.followTrajectory(frontPosition);
     }
     public void ZoneBT()
     {
-        startFlywheel();
+        startFlywheel(1.00);
 
         Trajectory shootPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(60,-12, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(60,-12, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(shootPosition);
 
@@ -212,80 +184,93 @@ public class LunaAuto extends LinearOpMode {
         stopFlywheel();
 
         Trajectory wobbleRecenter = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(0, 24, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(0, 24, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(wobbleRecenter);
 
         Trajectory deliverWobble = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(144, -72, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(144, -72, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(deliverWobble);
 
         wobbleDrop();
         Trajectory linePark = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(-48, 0, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(-48, 0, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(linePark);
     }
     public void ZoneCT()
     {
-        startFlywheel();
-
         Trajectory shootPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(60,-12, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(50,6, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(shootPosition);
 
-        ringIndex();
-        stopFlywheel();
-
         Trajectory wobbleRecenter = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(0, 24, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(0, 16, Math.toRadians(5)))
                 .build();
         drivetrain.followTrajectory(wobbleRecenter);
 
         Trajectory deliverWobble = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(192, -24, Math.toRadians(7.5)))
+                .lineToLinearHeading(new Pose2d(130, -9, Math.toRadians(9)))
                 .build();
         drivetrain.followTrajectory(deliverWobble);
-
         wobbleDrop();
-        Trajectory linePark = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
-                .lineToLinearHeading(new Pose2d(-96,0, Math.toRadians(7.5)))
+
+        startFlywheel(1.00);
+        Trajectory backPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
+                .lineToLinearHeading(new Pose2d(-92.25, -3, Math.toRadians(-4.5)))
                 .build();
-        drivetrain.followTrajectory(linePark);
+        drivetrain.followTrajectory(backPosition);
+        ringIndex();
+        stopFlywheel();
+
+        Trajectory frontPosition = drivetrain.trajectoryBuilder(new Pose2d(0, 0, 0))
+                .lineToLinearHeading(new Pose2d(32, -3, Math.toRadians(6)))
+                .build();
+        drivetrain.followTrajectory(frontPosition);
     }
     public void ringIndex() {
 
 
-        drivetrain.indexer.setPosition(0.75);
-        sleep(300);
+        drivetrain.indexer.setPosition(0.65);
+        sleep(600);
         drivetrain.indexer.setPosition(0.90);
-        sleep(300);
-        drivetrain.indexer.setPosition(0.75);
-        sleep(300);
+        startFlywheel(1.0);
+        sleep(1500);
+        drivetrain.indexer.setPosition(0.65);
+        sleep(600);
         drivetrain.indexer.setPosition(0.90);
-        sleep(300);
-        drivetrain.indexer.setPosition(0.75);
+       startFlywheel(1.0);
+        sleep(1500);
+        drivetrain.indexer.setPosition(0.65);
+        sleep(600);
     }
     public void wobbleDrop() {
 
 
         drivetrain.arm.setPower(0.75);
-        sleep(150);
+        sleep(300);
         drivetrain.arm.setPower(0.00);
-        sleep(300);
+        sleep(900);
         drivetrain.grabber.setPosition(0.30);
-        sleep(300);
+        sleep(600);
     }
-    public void startFlywheel() {
+    public void startFlywheel(double power) {
 
-        drivetrain.flywheel.setPower(1.00);
+        drivetrain.flywheel.setPower(power);
+        sleep(600);
+        if(power > 0) {
+            double currentPower = drivetrain.flywheel.getPower();
+            double error = (power - currentPower);
+            drivetrain.flywheel.setPower(currentPower + error);
+        }
+
     }
     public void stopFlywheel() {
-
         drivetrain.flywheel.setPower(0.00);
     }
+
 
     /**
      * Initialize the Vuforia localization engine.
